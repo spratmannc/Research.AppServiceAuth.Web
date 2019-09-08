@@ -1,0 +1,46 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home page";
+	var baseAddress = $"{Request.Scheme}%3A%2F%2F{Request.Host}";
+}
+
+
+<h4>User Info</h4>
+@if (Model.UserDetails != null)
+{
+<table class="table table-striped w-25">
+	<tbody>
+		<tr>
+			<td>Id</td>
+			<td>@Model.UserDetails.Id</td>
+		</tr>
+		<tr>
+			<td>Name</td>
+			<td>@Model.UserDetails.DisplayName</td>
+		</tr>
+		<tr>
+			<td>User Principal Name (email)</td>
+			<td>@Model.UserDetails.UserPrincipalName</td>
+		</tr>
+	</tbody>
+</table>
+
+<a class="btn btn-danger" href="/.auth/logout">Sign Out</a>
+
+}
+else 
+{
+	<a class="btn btn-link" href="/.auth/login/microsoftaccount?post_login_redirect_url=%2f">Click Here to Sign In with your <strong>Microsoft</strong> Account</a>
+	<br />
+	<a class="btn btn-link" href="/.auth/login/google?post_login_redirect_url=%2f">Click Here to Sign In with your <strong>Google</strong> Account</a>
+}
+
+<br />
+<h4>Injected Headers</h4>
+<ul>
+	@foreach (var header in Request.Headers)
+	{
+	<li><strong>@header.Key:</strong> @header.Value</li>
+	}
+</ul>
