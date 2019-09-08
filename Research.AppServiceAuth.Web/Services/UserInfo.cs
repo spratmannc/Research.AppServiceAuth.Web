@@ -31,7 +31,7 @@ namespace Research.AppServiceAuth.Web.Services
         public async Task<GraphProfile> GetCurrentProfile()
         {
             var userid = GetHeaderValue("X-MS-CLIENT-PRINCIPAL-ID");
-            var principalIDP = GetHeaderValue("X-MS-TOKEN-GOOGLE-ID-TOKEN");
+            var principalIDP = GetHeaderValue("X-MS-CLIENT-PRINCIPAL-IDP");
 
             if (!string.IsNullOrEmpty(userid))
             {
@@ -43,7 +43,7 @@ namespace Research.AppServiceAuth.Web.Services
                 }
                 else
                 {
-                    return await AcquireUserInfo(userid);
+                    return await AcquireUserInfo(userid, principalIDP);
                 }
             }
             else
@@ -57,10 +57,8 @@ namespace Research.AppServiceAuth.Web.Services
             return $"{principalIDP}:{userid}";
         }
 
-        private async Task<GraphProfile> AcquireUserInfo(string userId)
+        private async Task<GraphProfile> AcquireUserInfo(string userId, string principalIDP)
         {
-            string principalIDP = GetHeaderValue("X-MS-CLIENT-PRINCIPAL-IDP");
-
             switch (principalIDP)
             {
                 case "microsoftaccount":
@@ -129,7 +127,7 @@ namespace Research.AppServiceAuth.Web.Services
         {
             var context = httpContext.HttpContext.Request;
 
-            var refresh_token = GetHeaderValue(settings.RefreshTokenHeaderKey);
+            var refresh_token = GetHeaderValue("X-MS-TOKEN-MICROSOFTACCOUNT-REFRESH-TOKEN");
 
             if (!string.IsNullOrEmpty(refresh_token))
             {

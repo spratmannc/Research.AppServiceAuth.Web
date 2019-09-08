@@ -12,7 +12,6 @@ namespace Research.AppServiceAuth.Web.Models
         public string ClientSecret { get; set; }
         public string RedirectUriSuffix { get; set; } = ".auth/login/microsoftaccount/callback";
         public string GraphScope { get; set; } = "https://graph.microsoft.com/.default";
-        public string RefreshTokenHeaderKey { get; set; } = "X-MS-TOKEN-MICROSOFTACCOUNT-REFRESH-TOKEN";
         public string OAuth2TokenUrl { get; set; } = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
 
         public string GetUsersInfoUrl(string userid)
