@@ -17,14 +17,14 @@ namespace Research.AppServiceAuth.Web.Services
     {
         private readonly HttpClient http;
         private readonly IHttpContextAccessor httpContext;
-        private readonly IMemoryCache cache;
         private readonly MicrosoftAccountSettings settings;
 
-        public UserInfoService(HttpClient http, IHttpContextAccessor httpContext, IMemoryCache cache, IOptions<MicrosoftAccountSettings> options)
+        public string LastJson { get; private set; }
+
+        public UserInfoService(HttpClient http, IHttpContextAccessor httpContext, IOptions<MicrosoftAccountSettings> options)
         {
             this.http = http;
             this.httpContext = httpContext;
-            this.cache = cache;
             this.settings = options.Value;
         }
 
@@ -35,16 +35,7 @@ namespace Research.AppServiceAuth.Web.Services
 
             if (!string.IsNullOrEmpty(userid))
             {
-                string cacheKey = BuildCacheKey(userid, principalIDP);
-
-                if (cache.TryGetValue<GraphProfile>(cacheKey, out var profile))
-                {
-                    return profile;
-                }
-                else
-                {
-                    return await AcquireUserInfo(userid, principalIDP);
-                }
+                return await AcquireUserInfo(userid, principalIDP);
             }
             else
             {
@@ -62,10 +53,13 @@ namespace Research.AppServiceAuth.Web.Services
             switch (principalIDP)
             {
                 case "microsoftaccount":
-                    return await AcquireMicrosoftAccountUserInfo(userId);
+                    return await AcquireLiveSDKUserInfo(userId);
 
                 case "google":
                     return ParseGoogleIdToken();
+
+                case "aad":
+                    return null;
 
                 default:
                     return null;
@@ -90,9 +84,30 @@ namespace Research.AppServiceAuth.Web.Services
 
             var profile = payload.ToGraphProfile();
 
-            cache.Set(BuildCacheKey("google", profile.Id), profile);
-
             return profile;
+        }
+
+        private async Task<GraphProfile> AcquireLiveSDKUserInfo(string userid)
+        {
+            if (!string.IsNullOrEmpty(userid))
+            {
+                var token = GetHeaderValue("X-MS-TOKEN-MICROSOFTACCOUNT-ACCESS-TOKEN");
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+                    var response = await http.GetAsync("https://apis.live.net/v5.0/me");
+
+                    var json = await response.Content.ReadAsStringAsync();
+
+                    var profile = JsonConvert.DeserializeObject<MsLiveProfile>(json);
+
+                    return profile.ToGraphProfile();
+                }
+            }
+
+            return null;
         }
 
         private async Task<GraphProfile> AcquireMicrosoftAccountUserInfo(string userid)
@@ -110,11 +125,6 @@ namespace Research.AppServiceAuth.Web.Services
                     var json = await response.Content.ReadAsStringAsync();
 
                     var profile = JsonConvert.DeserializeObject<GraphProfile>(json);
-
-                    if (profile != null)
-                    {
-                        cache.Set(BuildCacheKey("microsoftaccount", profile.Id), profile);
-                    }
 
                     return profile;
                 }
@@ -146,6 +156,8 @@ namespace Research.AppServiceAuth.Web.Services
                 var response = await http.PostAsync(settings.OAuth2TokenUrl, content);
 
                 var json = await response.Content.ReadAsStringAsync();
+
+                LastJson = json;
 
                 var token = JsonConvert.DeserializeObject<TokenResponse>(json);
 

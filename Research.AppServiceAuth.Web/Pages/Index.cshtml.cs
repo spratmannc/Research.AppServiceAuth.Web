@@ -21,9 +21,14 @@ namespace Research.AppServiceAuth.Web.Pages
         [BindProperty]
         public GraphProfile UserDetails { get; private set; }
 
+        [BindProperty]
+        public string LastJson { get; private set; }
+
         public async Task OnGet()
         {
             UserDetails = await userInfo.GetCurrentProfile();
+
+            LastJson = userInfo.LastJson;
         }
     }
 }

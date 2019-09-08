@@ -29,11 +29,19 @@
 <a class="btn btn-danger" href="/.auth/logout">Sign Out</a>
 
 }
-else 
+else
 {
-	<a class="btn btn-link" href="/.auth/login/microsoftaccount?post_login_redirect_url=%2f">Click Here to Sign In with your <strong>Microsoft</strong> Account</a>
-	<br />
-	<a class="btn btn-link" href="/.auth/login/google?post_login_redirect_url=%2f">Click Here to Sign In with your <strong>Google</strong> Account</a>
+@if(string.IsNullOrEmpty(Model.LastJson))
+	{
+<div class="alert alert-danger">@Model.LastJson</div>
+	}
+
+<h4>Sign In With Your Favorite Account Type</h4>
+<a class="btn btn-link" href="/.auth/login/microsoftaccount?post_login_redirect_url=%2f"><i class="fa fab fa-microsoft"></i> Microsoft Personal Account</a>
+<br />
+<a class="btn btn-link" href="/.auth/login/aad?post_login_redirect_url=%2f"><i class="fa fas fa-building"></i> Microsoft Work/School Account</a>
+<br />
+<a class="btn btn-link" href="/.auth/login/google?post_login_redirect_url=%2f"><i class="fa fab fa-google"></i> Google Account</a>
 }
 
 <br />
