@@ -59,7 +59,7 @@ namespace Research.AppServiceAuth.Web.Services
                     return ParseGoogleIdToken();
 
                 case "aad":
-                    return null;
+                    return ParseAADToken();
 
                 default:
                     return null;
@@ -81,6 +81,19 @@ namespace Research.AppServiceAuth.Web.Services
             var bits = Convert.FromBase64String(encodedPayload);
             var json = Encoding.UTF8.GetString(bits);
             var payload = JsonConvert.DeserializeObject<GoogleTokenPayload>(json);
+
+            var profile = payload.ToGraphProfile();
+
+            return profile;
+        }
+
+        private GraphProfile ParseAADToken()
+        {
+            var jwt = GetHeaderValue("X-MS-TOKEN-AAD-ID-TOKEN");
+            var encodedPayload = jwt.Split('.')[1];
+            var bits = Convert.FromBase64String(encodedPayload);
+            var json = Encoding.UTF8.GetString(bits);
+            var payload = JsonConvert.DeserializeObject<AadTokenPayload>(json);
 
             var profile = payload.ToGraphProfile();
 
